@@ -1,0 +1,11 @@
+# Pycharm
+/.idea/
+
+# .env files
+*.env
+
+# Images and processed data
+*/data/
+
+# Models
+*.pt
