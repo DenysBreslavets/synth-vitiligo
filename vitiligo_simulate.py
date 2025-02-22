@@ -75,20 +75,8 @@ def read_and_sort_images_masks(images_dir, masks_dir):
 
 def save_progression_images(results, output_base_dir, image_idx, sim_idx, original_dims):
     """Save the extracted progression images at specified indices with original dimensions."""
+    # TODO: Randomly select indices
     depigmentation_indices = [19, 39, 59, 79, 99]
-    # depigmentation_indices = [25, 50, 75]
-    # repigmentation_indices = [19, 39, 59, 79, 99]
-    repigmentation_indices = [20, 30]
-
-    # TODO: Full results object:
-    #  {
-    #    'depigmentation_masks': progression_simulator.depigmentation_masks,
-    #    'repigmentation_masks': progression_simulator.repigmentation_masks,
-    #    'depigmentation_images': blend_simulator.depigmentation_images,
-    #    'repigmentation_images': blend_simulator.repigmentation_images
-    #   }
-
-    # TODO: Save masks as well. Consider saving masks in a separate dir, like /masks
 
     # Save depigmentation images
     for idx in depigmentation_indices:
@@ -96,18 +84,16 @@ def save_progression_images(results, output_base_dir, image_idx, sim_idx, origin
         resized_image = cv2.resize(results['depigmentation_images'][idx],
                                    (original_dims[1], original_dims[0]),
                                    interpolation=cv2.INTER_LINEAR)
-        # output_path = os.path.join(depig_dir, f'sim_{sim_idx}_idx_{idx}.jpg')
-        output_path = os.path.join(output_base_dir, f'{image_idx}_depig_{sim_idx}_idx_{idx}.jpg')
+        output_path = os.path.join(output_base_dir, f'images/{image_idx}_depig_{sim_idx}_idx_{idx}.jpg')
         cv2.imwrite(output_path, resized_image)
 
-    # Save repigmentation images
-    for idx in repigmentation_indices:
+    # Save depigmentation masks
+    for idx in depigmentation_indices:
         # Resize to original dimensions
-        resized_image = cv2.resize(results['repigmentation_images'][idx],
+        resized_image = cv2.resize(results['depigmentation_masks'][idx] * 255,
                                    (original_dims[1], original_dims[0]),
                                    interpolation=cv2.INTER_LINEAR)
-        # output_path = os.path.join(repig_dir, f'sim_{sim_idx}_idx_{idx}.jpg')
-        output_path = os.path.join(output_base_dir, f'{image_idx}_repig_{sim_idx}_idx_{idx}.jpg')
+        output_path = os.path.join(output_base_dir, f'masks/{image_idx}_depig_{sim_idx}_idx_{idx}.png')
         cv2.imwrite(output_path, resized_image)
 
 
@@ -122,7 +108,10 @@ if __name__ == "__main__":
 
     # Output base directory
     output_base_dir = 'output/vitiligo_sim'
+    # Create dirs
     os.makedirs(output_base_dir, exist_ok=True)
+    os.makedirs(f'{output_base_dir}/images', exist_ok=True)
+    os.makedirs(f'{output_base_dir}/masks', exist_ok=True)
 
     for idx, (image_path, mask_path) in enumerate(image_mask_pairs[start_idx:], start=start_idx):
         print(f'Processing image {idx + 1}/{len(image_mask_pairs)}')

@@ -229,8 +229,8 @@ def simulate_vitiligo(
 
     # Outputs
     return {
-        'depigmentation_masks': progression_simulator.depigmentation_masks,
-        'repigmentation_masks': progression_simulator.repigmentation_masks,
+        'depigmentation_masks': cropped_depigmentation_masks,
+        'repigmentation_masks': cropped_repigmentation_masks,
         'depigmentation_images': blend_simulator.depigmentation_images,
         'repigmentation_images': blend_simulator.repigmentation_images
     }
