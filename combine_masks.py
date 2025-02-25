@@ -74,7 +74,7 @@ def process_mask_directories(base_mask_dir, disease_mask_dir, output_dir):
         # Process each disease mask for this base mask
         for disease_mask_path in corresponding_disease_masks:
             disease_mask_name = os.path.basename(disease_mask_path)
-            output_name = f"combined_{disease_mask_name}"
+            output_name = f"{disease_mask_name}"
             output_path = os.path.join(output_dir, output_name)
 
             try:
