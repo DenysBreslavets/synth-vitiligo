@@ -217,7 +217,7 @@ if __name__ == "__main__":
     train_split = 0.8
     input_images_dir = "output/vitiligo_sim/images"
     input_masks_dir = "output/combined_masks"
-    output_base_dir = "data/processed_dataset"
+    output_base_dir = "output/processed_dataset"
     patch_size = 512
     overlap_percent = 0.2
     scale_factors = (0.01, 0.2, 0.4)
