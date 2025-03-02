@@ -4,6 +4,16 @@ import numpy as np
 
 from vitiligo_sim_main import simulate_vitiligo
 
+# Read images and masks
+INPUT_IMAGES_DIR = 'data/images'
+INPUT_MASKS_DIR = 'data/masks'
+
+# Configuration parameters
+NUM_SIMULATIONS = 2  # Number of simulations per image
+INDICES_PER_SIMULATION = 3  # Number of indices to save per simulation
+MIN_INDEX = 19  # Minimum index to select from
+MAX_INDEX = 79  # Maximum index to select from
+
 depigmentation_params = {
     'max_seeds': 50,  # Maximum number of seed points
     'min_seeds': 20,  # Minimum number of seed points
