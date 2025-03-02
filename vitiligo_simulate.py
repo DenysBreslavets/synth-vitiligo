@@ -1,6 +1,7 @@
 import os
 import cv2
 import numpy as np
+import random
 
 from vitiligo_sim_main import simulate_vitiligo
 
@@ -10,9 +11,9 @@ INPUT_MASKS_DIR = 'data/masks'
 
 # Configuration parameters
 NUM_SIMULATIONS = 2  # Number of simulations per image
-INDICES_PER_SIMULATION = 3  # Number of indices to save per simulation
-MIN_INDEX = 19  # Minimum index to select from
-MAX_INDEX = 79  # Maximum index to select from
+INDICES_PER_SIMULATION = 2  # Number of indices to save per simulation
+MIN_INDEX = 15  # Minimum index to select from
+MAX_INDEX = 85  # Maximum index to select from
 
 depigmentation_params = {
     'max_seeds': 50,  # Maximum number of seed points
@@ -65,9 +66,21 @@ edge_params = {
     'edge_noise': 0.5,  # Amount of edge noise (0.0 for no noise)
 }
 
-# Read images and masks
-input_images_dir = 'data/images'
-input_masks_dir = 'data/masks'
+
+def generate_random_indices(num_indices, min_idx, max_idx, seed=None):
+    """Generate random unique indices within the specified range."""
+    if seed is not None:
+        random.seed(seed)
+
+    # Ensure we're not asking for more indices than available in the range
+    available_indices = max_idx - min_idx + 1
+    if num_indices > available_indices:
+        num_indices = available_indices
+        print(f"Warning: Requested more indices than available. Using {num_indices} indices instead.")
+
+    # Generate unique random indices
+    indices = random.sample(range(min_idx, max_idx + 1), num_indices)
+    return sorted(indices)  # Sort for better visualization of progression
 
 
 def read_and_sort_images_masks(images_dir, masks_dir):
@@ -83,12 +96,8 @@ def read_and_sort_images_masks(images_dir, masks_dir):
     return list(zip(image_paths, mask_paths))
 
 
-def save_progression_images(results, output_base_dir, image_idx, sim_idx, original_dims):
+def save_progression_images(results, output_base_dir, image_idx, sim_idx, original_dims, depigmentation_indices):
     """Save the extracted progression images at specified indices with original dimensions."""
-    # TODO: Randomly select indices
-    depigmentation_indices = [19, 39, 59, 79, 99]
-
-    # Save depigmentation images
     for idx in depigmentation_indices:
         # Resize to original dimensions
         resized_image = cv2.resize(results['depigmentation_images'][idx],
@@ -109,7 +118,7 @@ def save_progression_images(results, output_base_dir, image_idx, sim_idx, origin
 
 if __name__ == "__main__":
     # Read all available images and masks
-    image_mask_pairs = read_and_sort_images_masks(input_images_dir, input_masks_dir)
+    image_mask_pairs = read_and_sort_images_masks(INPUT_IMAGES_DIR, INPUT_MASKS_DIR)
 
     print('Number of image/mask pairs:', len(image_mask_pairs))
 
@@ -129,9 +138,21 @@ if __name__ == "__main__":
         original_image = cv2.imread(image_path)
         original_dims = original_image.shape[:2]  # (height, width)
 
-        # Perform 5 simulations for each pair
-        for sim_idx in range(3):
-            print(f'Processing simulation {sim_idx + 1}/3')
+        # Generate simulation indices for all simulations for this image
+        # Use image index as a seed for reproducibility
+        master_seed = 1000 + idx
+        all_simulation_indices = []
+
+        # We need NUM_SIMULATIONS sets of INDICES_PER_SIMULATION unique indices
+        for sim in range(NUM_SIMULATIONS):
+            # Use a different seed for each simulation but derived from master seed
+            sim_seed = master_seed + sim * 100
+            indices = generate_random_indices(INDICES_PER_SIMULATION, MIN_INDEX, MAX_INDEX, seed=sim_seed)
+            all_simulation_indices.append(indices)
+
+        # Perform simulations for each pair
+        for sim_idx in range(NUM_SIMULATIONS):
+            print(f'Processing simulation {sim_idx + 1}/{NUM_SIMULATIONS}')
             # Use a different, but reproducible seed for each pair and simulation instance
             progression_seed = 10 + idx + sim_idx
 
@@ -183,5 +204,8 @@ if __name__ == "__main__":
                 dark_factor=0.35
             )
 
-            # Save the progression images with original dimensions
-            save_progression_images(results, output_base_dir, idx, sim_idx, original_dims)
+            # Get the indices for this simulation
+            depigmentation_indices = all_simulation_indices[sim_idx]
+
+            # Save the progression images with original dimensions using the selected indices
+            save_progression_images(results, output_base_dir, idx, sim_idx, original_dims, depigmentation_indices)
